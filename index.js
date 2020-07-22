@@ -2,6 +2,7 @@ const express = require('express');
 const app = express();
 const bodyParser = require('body-parser');
 const request = require('request-promise');
+const axios = require('axios');
 
 app.set('view engine', 'ejs');
 app.use(bodyParser.json());
@@ -12,24 +13,23 @@ app.get('/',(req, res)=>{
 });
 
 app.post('/', async(req, res)=>{
-    const validate = await request({
+    const result = await axios({
         method: 'post',
-        uri: 'https://www.google.com/recaptcha/api/siteverify',
-        formData: {
+        url: 'https://www.google.com/recaptcha/api/siteverify',
+        params: {
             secret: '6LeKw7QZAAAAAH2cmudNGRWBdUJjKfFPr-18axaB',
             response: req.body['g-recaptcha-response'],
             remoteip: req.headers['x-forward-for'] || req.connection.remoteAddress
         }
     });
 
-    const json = JSON.parse(validate);
-    if(json.success){
-        res.send('Autorizado');
+    const isValidate = result.data.success;
+
+    if(isValidate){
+        res.send('autorizado');
     }else{
-        res.send('Falha ao autorizar')
+        res.send('Não autorizado');
     }
-    console.log(validate);
-    //res.send(req.body);
 });
 
 app.listen(3000, ()=> console.log('running...'));
